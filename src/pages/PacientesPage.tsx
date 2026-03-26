@@ -14,7 +14,9 @@ import {
   FilterListOutlined as FilterIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import api from '../services/api';
+
+
+import { api } from '../services/api';
 
 // Interface batendo com o JPA do Back-end
 interface Paciente {
