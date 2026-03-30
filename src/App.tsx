@@ -7,17 +7,7 @@ import PacientesPage from './pages/PacientesPage';
 import NovoPacientePage from './pages/NovoPacientePage';
 import FichaPacientePage from './pages/FichaPacientePage';
 import EditarPacientePage from './pages/EditarPacientePage'; 
-
-const Dashboard = () => (
-  <Box>
-    <Typography variant="h4" fontWeight={700} color="primary" sx={{ mb: 2 }}>
-      Bem-vinda, Dra. Elisa! 🩺
-    </Typography>
-    <Typography variant="body1" color="text.secondary">
-      Seu sistema de gestão odontológica está pronto para uso.
-    </Typography>
-  </Box>
-);
+import DashboardPage from './pages/DashboardPage';
 
 const AgendaPage = () => (
   <Box>
@@ -55,7 +45,7 @@ function App() {
         }}
       >
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<DashboardPage />} />
           <Route path="/pacientes" element={<PacientesPage />} />
           <Route path="/pacientes/novo" element={<NovoPacientePage />} />
           <Route path="/agenda" element={<AgendaPage />} />
