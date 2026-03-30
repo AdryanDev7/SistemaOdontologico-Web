@@ -6,6 +6,14 @@ interface EstatisticasPacientes {
   totalPacientes: number;
 }
 
+interface EstatisticasConsultas {
+  totalConsultasHoje: number;
+}
+
+interface EstatisticasFinanceiro {
+  faturamentoMensal: number;
+}
+
 interface SummaryCardProps {
   title: string;
   value: string | number;
@@ -39,6 +47,8 @@ function SummaryCard({ title, value, subtitle, loading = false }: SummaryCardPro
 
 export default function DashboardPage() {
   const [totalPacientes, setTotalPacientes] = useState<number>(0);
+  const [totalConsultasHoje, setTotalConsultasHoje] = useState<number>(0);
+  const [faturamentoMensal, setFaturamentoMensal] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -46,8 +56,15 @@ export default function DashboardPage() {
     const carregarEstatisticas = async () => {
       try {
         setLoading(true);
-        const { data } = await api.get<EstatisticasPacientes>('/pacientes/estatisticas');
-        setTotalPacientes(data.totalPacientes ?? 0);
+        const [pacientesRes, consultasRes, financeiroRes] = await Promise.all([
+          api.get<EstatisticasPacientes>('/pacientes/estatisticas'),
+          api.get<EstatisticasConsultas>('/consultas/estatisticas'),
+          api.get<EstatisticasFinanceiro>('/financeiro/estatisticas'),
+        ]);
+
+        setTotalPacientes(pacientesRes.data.totalPacientes ?? 0);
+        setTotalConsultasHoje(consultasRes.data.totalConsultasHoje ?? 0);
+        setFaturamentoMensal(financeiroRes.data.faturamentoMensal ?? 0);
       } catch (error) {
         console.error(error);
         setErro('Nao foi possivel carregar as estatisticas do dashboard.');
@@ -58,6 +75,11 @@ export default function DashboardPage() {
 
     carregarEstatisticas();
   }, []);
+
+  const faturamentoMensalFormatado = new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(faturamentoMensal);
 
   return (
     <Box>
@@ -88,15 +110,17 @@ export default function DashboardPage() {
         <Grid size={{ xs: 12, md: 4 }}>
           <SummaryCard
             title="Consultas Hoje"
-            value="12"
-            subtitle="Placeholder visual (integracao futura)"
+            value={totalConsultasHoje}
+            loading={loading}
+            subtitle="Consultas marcadas para hoje"
           />
         </Grid>
         <Grid size={{ xs: 12, md: 4 }}>
           <SummaryCard
             title="Faturamento Mensal"
-            value="R$ 18.900"
-            subtitle="Placeholder visual (integracao futura)"
+            value={faturamentoMensalFormatado}
+            loading={loading}
+            subtitle="Soma de faturamentos no mes atual"
           />
         </Grid>
       </Grid>
