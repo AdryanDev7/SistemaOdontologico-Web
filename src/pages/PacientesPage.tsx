@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Box, Typography, Button, Chip, IconButton, Tooltip,
   TextField, InputAdornment, Avatar, Paper, Skeleton,
@@ -9,9 +9,7 @@ import {
   Add as AddIcon,
   Search as SearchIcon,
   EditOutlined as EditIcon,
-  FolderOpenOutlined as FichaIcon,
-  PersonOutlined as PersonIcon,
-  FilterListOutlined as FilterIcon
+  FolderOpenOutlined as FichaIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
@@ -192,8 +190,23 @@ export default function PacientesPage() {
 
                   <TableCell align="right" sx={{ pr: 3 }}>
                     <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-end' }}>
-                      <Tooltip title="Ver ficha"><IconButton size="small" color="primary"><FichaIcon fontSize="small" /></IconButton></Tooltip>
-                      <Tooltip title="Editar"><IconButton size="small"><EditIcon fontSize="small" /></IconButton></Tooltip>
+                      <Tooltip title="Ver ficha">
+                        <IconButton
+                          size="small"
+                          color="primary"
+                          onClick={() => navigate(`/pacientes/${paciente.id}`)}
+                        >
+                          <FichaIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Editar">
+                        <IconButton
+                          size="small"
+                          onClick={() => navigate(`/pacientes/${paciente.id}/editar`)}
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
                     </Box>
                   </TableCell>
                 </TableRow>
