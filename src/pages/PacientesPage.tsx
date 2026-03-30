@@ -14,7 +14,6 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
-
 import { api } from '../services/api';
 
 // Interface batendo com o JPA do Back-end
@@ -29,25 +28,25 @@ interface Paciente {
 }
 
 // Helpers de formatação
-const formatCPF = (cpf: string) => cpf.replace(/\D/g, '').replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+const formatCPF = (cpf: string) => cpf?.replace(/\D/g, '').replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') || '';
 
 const formatTelefone = (tel: string) => {
-  const digits = tel.replace(/\D/g, '');
+  const digits = tel?.replace(/\D/g, '') || '';
   if (digits.length === 11) return digits.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
   return digits.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
 };
 
-// Gera iniciais pro Avatar (Ex: Adryan Lima -> AL)
 const getInitials = (nome: string) => {
+  if (!nome) return '??';
   const partes = nome.trim().split(' ');
   return partes.length >= 2 
     ? `${partes[0][0]}${partes[partes.length - 1][0]}`.toUpperCase() 
     : nome.substring(0, 2).toUpperCase();
 };
 
-// Paleta fixa pra manter consistência visual nos Avatares
 const AVATAR_COLORS = ['#9c27b0', '#7b1fa2', '#6a1b9a', '#ab47bc', '#8e24aa', '#ba68c8', '#ce93d8', '#7e57c2'];
 const getAvatarColor = (nome: string) => {
+  if (!nome) return '#999';
   let hash = 0;
   for (let i = 0; i < nome.length; i++) hash = nome.charCodeAt(i) + ((hash << 5) - hash);
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
@@ -55,6 +54,7 @@ const getAvatarColor = (nome: string) => {
 
 export default function PacientesPage() {
   const navigate = useNavigate();
+  // INICIALIZAÇÃO SEGURA: Sempre começa como array vazio []
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -71,7 +71,8 @@ export default function PacientesPage() {
 
     try {
       await api.delete(`/pacientes/${id}`);
-      setPacientes((prev) => prev.filter((p) => p.id !== id));
+      // UPDATE SEGURO: Verifica se prev é array antes de filtrar
+      setPacientes((prev) => (Array.isArray(prev) ? prev.filter((p) => p.id !== id) : []));
       setErro(null);
     } catch (err) {
       console.error(err);
@@ -79,13 +80,13 @@ export default function PacientesPage() {
     }
   };
 
-  // Request inicial pro Back-end
   useEffect(() => {
     const fetchPacientes = async () => {
       try {
         setLoading(true);
         const { data } = await api.get<Paciente[]>('/pacientes');
-        setPacientes(data);
+        // SET SEGURO: Garante que data seja array ou fallback para []
+        setPacientes(Array.isArray(data) ? data : []);
       } catch (err) {
         setErro('Erro de conexão. O servidor está on-line?');
         console.error(err);
@@ -96,17 +97,20 @@ export default function PacientesPage() {
     fetchPacientes();
   }, []);
 
-  // Lógica de filtro (ignora símbolos no CPF)
-  const pacientesFiltrados = pacientes.filter((p) => {
-    const termo = busca.toLowerCase().replace(/\D/g, '') || busca.toLowerCase();
-    return p.nome.toLowerCase().includes(busca.toLowerCase()) || p.cpf.replace(/\D/g, '').includes(termo);
+  // FILTRO SEGURO: A "trava" contra a tela branca está aqui (Array.isArray)
+  const pacientesFiltrados = (Array.isArray(pacientes) ? pacientes : []).filter((p) => {
+    const nomeBaixo = p.nome?.toLowerCase() || '';
+    const buscaBaixa = busca.toLowerCase();
+    const termoCpf = buscaBaixa.replace(/\D/g, '') || buscaBaixa;
+    const cpfLimpo = p.cpf?.replace(/\D/g, '') || '';
+
+    return nomeBaixo.includes(buscaBaixa) || cpfLimpo.includes(termoCpf);
   });
 
   const pacientesPaginados = pacientesFiltrados.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
     <Box>
-      {/* Título e CTA principal */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Box>
           <Typography variant="h5" fontWeight={600}>Pacientes</Typography>
@@ -125,7 +129,6 @@ export default function PacientesPage() {
         </Button>
       </Box>
 
-      {/* Filtro de texto */}
       <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
         <TextField
           fullWidth
@@ -156,7 +159,6 @@ export default function PacientesPage() {
             </TableHead>
 
             <TableBody>
-              {/* Skeletons de Loading */}
               {loading && Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
                   <TableCell sx={{ pl: 3 }}><Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}><Skeleton variant="circular" width={36} height={36} /><Skeleton width={160} /></Box></TableCell>
@@ -167,7 +169,6 @@ export default function PacientesPage() {
                 </TableRow>
               ))}
 
-              {/* Empty State */}
               {!loading && pacientesFiltrados.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
@@ -176,7 +177,6 @@ export default function PacientesPage() {
                 </TableRow>
               )}
 
-              {/* Mapeamento da lista */}
               {!loading && pacientesPaginados.map((paciente) => (
                 <TableRow key={paciente.id} hover sx={{ '&:hover': { bgcolor: '#fdf8ff' }, '&:last-child td': { border: 0 } }}>
                   <TableCell sx={{ pl: 3 }}>
@@ -209,28 +209,17 @@ export default function PacientesPage() {
                   <TableCell align="right" sx={{ pr: 3 }}>
                     <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-end' }}>
                       <Tooltip title="Ver ficha">
-                        <IconButton
-                          size="small"
-                          color="primary"
-                          onClick={() => navigate(`/pacientes/${paciente.id}`)}
-                        >
+                        <IconButton size="small" color="primary" onClick={() => navigate(`/pacientes/${paciente.id}`)}>
                           <FichaIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Editar">
-                        <IconButton
-                          size="small"
-                          onClick={() => navigate(`/pacientes/${paciente.id}/editar`)}
-                        >
+                        <IconButton size="small" onClick={() => navigate(`/pacientes/${paciente.id}/editar`)}>
                           <EditIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Excluir">
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => excluirPaciente(paciente)}
-                        >
+                        <IconButton size="small" color="error" onClick={() => excluirPaciente(paciente)}>
                           <DeleteIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
