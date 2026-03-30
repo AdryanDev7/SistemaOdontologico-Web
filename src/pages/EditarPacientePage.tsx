@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import {
-  Box, Typography, Button, TextField, Paper,
+  Box, Typography, Button, TextField, Paper, Grid,
   Divider, FormControlLabel, Checkbox, Alert,
   CircularProgress, Snackbar, MenuItem, InputAdornment,
   Skeleton
 } from '@mui/material';
-import { GridLegacy as Grid } from '@mui/material';
 import {
   ArrowBackOutlined as BackIcon,
   SaveOutlined as SaveIcon,
@@ -188,14 +187,14 @@ export default function EditarPacientePage() {
         </Box>
 
         <Grid container spacing={2.5}>
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <TextField fullWidth required label="Nome completo"
               value={dados.nome} onChange={e => atualizar('nome', e.target.value)}
               error={!!erros.nome} helperText={erros.nome}
               size="small" sx={fieldStyle} />
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField fullWidth select label="Sexo"
               value={dados.sexo} onChange={e => atualizar('sexo', e.target.value)}
               size="small" sx={fieldStyle}>
@@ -206,40 +205,40 @@ export default function EditarPacientePage() {
             </TextField>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <TextField fullWidth required label="CPF"
               value={dados.cpf} onChange={e => atualizar('cpf', maskCPF(e.target.value))}
               error={!!erros.cpf} helperText={erros.cpf}
               size="small" sx={fieldStyle} />
           </Grid>
 
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <TextField fullWidth label="RG"
               value={dados.rg} onChange={e => atualizar('rg', e.target.value)}
               size="small" sx={fieldStyle} />
           </Grid>
 
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <TextField fullWidth label="Data de Nascimento" type="date"
               value={dados.dataNascimento} onChange={e => atualizar('dataNascimento', e.target.value)}
               InputLabelProps={{ shrink: true }}
               size="small" sx={fieldStyle} />
           </Grid>
 
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <TextField fullWidth required label="Telefone / WhatsApp"
               value={dados.telefone} onChange={e => atualizar('telefone', maskTelefone(e.target.value))}
               error={!!erros.telefone} helperText={erros.telefone}
               size="small" sx={fieldStyle} />
           </Grid>
 
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <TextField fullWidth label="E-mail" type="email"
               value={dados.email} onChange={e => atualizar('email', e.target.value)}
               size="small" sx={fieldStyle} />
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid size={12}>
             <TextField fullWidth label="Endereço completo"
               value={dados.endereco} onChange={e => atualizar('endereco', e.target.value)}
               placeholder="Rua, número, bairro, cidade - UF"
@@ -256,20 +255,20 @@ export default function EditarPacientePage() {
         </Box>
 
         <Grid container spacing={2.5}>
-          <Grid item xs={12}>
+          <Grid size={12}>
             <TextField fullWidth label="Queixa principal"
               value={dados.queixaPrincipal} onChange={e => atualizar('queixaPrincipal', e.target.value)}
               multiline rows={2} size="small" sx={fieldStyle} />
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField fullWidth label="Alergias"
               value={dados.alergias} onChange={e => atualizar('alergias', e.target.value)}
               placeholder="Penicilina, látex, anti-inflamatório..."
               size="small" sx={fieldStyle} />
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <TextField fullWidth label="Pressão Arterial"
               value={dados.pressaoArterial} onChange={e => atualizar('pressaoArterial', e.target.value)}
               placeholder="120/80" size="small" sx={fieldStyle}
@@ -282,19 +281,19 @@ export default function EditarPacientePage() {
               }} />
           </Grid>
 
-          <Grid item xs={12} md={9}>
+          <Grid size={{ xs: 12, md: 9 }}>
             <TextField fullWidth label="Medicamentos em uso"
               value={dados.medicamentosEmUso} onChange={e => atualizar('medicamentosEmUso', e.target.value)}
               size="small" sx={fieldStyle} />
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid size={12}>
             <TextField fullWidth label="Doenças sistêmicas"
               value={dados.doencasSistemicas} onChange={e => atualizar('doencasSistemicas', e.target.value)}
               size="small" sx={fieldStyle} />
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Divider sx={{ mb: 2 }}>
               <Typography variant="caption" color="text.secondary" sx={{ px: 1 }}>Condições de Saúde</Typography>
             </Divider>
@@ -323,7 +322,7 @@ export default function EditarPacientePage() {
             </Box>
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid size={12}>
             <TextField fullWidth label="Observações adicionais"
               value={dados.observacoes} onChange={e => atualizar('observacoes', e.target.value)}
               multiline rows={3} size="small" sx={fieldStyle} />
@@ -362,7 +361,7 @@ function EditarLoading() {
       <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, p: 3, mb: 3 }}>
         <Grid container spacing={2.5}>
           {Array.from({ length: 8 }).map((_, i) => (
-            <Grid item xs={12} sm={6} md={4} key={i}><Skeleton height={40} /></Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={i}><Skeleton height={40} /></Grid>
           ))}
         </Grid>
       </Paper>
