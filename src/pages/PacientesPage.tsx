@@ -9,7 +9,8 @@ import {
   Add as AddIcon,
   Search as SearchIcon,
   EditOutlined as EditIcon,
-  FolderOpenOutlined as FichaIcon
+  FolderOpenOutlined as FichaIcon,
+  DeleteOutline as DeleteIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
@@ -60,6 +61,20 @@ export default function PacientesPage() {
   const [busca, setBusca] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const excluirPaciente = async (paciente: Paciente) => {
+    const confirmou = window.confirm(`Deseja realmente excluir o paciente "${paciente.nome}"?`);
+    if (!confirmou) return;
+
+    try {
+      await api.delete(`/pacientes/${paciente.id}`);
+      setPacientes((prev) => prev.filter((p) => p.id !== paciente.id));
+      setErro(null);
+    } catch (err) {
+      console.error(err);
+      setErro('Nao foi possivel excluir o paciente. Tente novamente.');
+    }
+  };
 
   // Request inicial pro Back-end
   useEffect(() => {
@@ -205,6 +220,15 @@ export default function PacientesPage() {
                           onClick={() => navigate(`/pacientes/${paciente.id}/editar`)}
                         >
                           <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Excluir">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => excluirPaciente(paciente)}
+                        >
+                          <DeleteIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                     </Box>
