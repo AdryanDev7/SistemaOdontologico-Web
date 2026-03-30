@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Box, Typography, Button, Paper, Chip, Avatar,
+  Box, Typography, Button, Paper, Chip, Avatar, Grid,
   Tab, Tabs, Divider, Skeleton, Alert
 } from '@mui/material';
-import { GridLegacy as Grid } from '@mui/material';
 import {
   Timeline, TimelineItem, TimelineSeparator, TimelineConnector,
   TimelineContent, TimelineDot
@@ -124,12 +123,12 @@ export default function FichaPacientePage() {
       {tab === 0 && (
         <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, p: 3 }}>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <LabelValue icon={<PhoneIcon />} label="Telefone" value={formatarTelefone(paciente.telefone)} />
               <LabelValue icon={<EmailIcon />} label="E-mail" value={paciente.email} />
               <LabelValue icon={<HomeIcon />} label="Endereço" value={paciente.endereco} />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <LabelValue icon={<BadgeIcon />} label="RG" value={paciente.rg} />
               <LabelValue icon={<PersonIcon />} label="Sexo" value={paciente.sexo} />
             </Grid>
@@ -147,11 +146,11 @@ export default function FichaPacientePage() {
           </Box>
           <Divider sx={{ mb: 3 }} />
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <InfoBox label="Queixa Principal" value={paciente.queixaPrincipal} />
               <InfoBox label="Alergias" value={paciente.alergias} alert />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <InfoBox label="Medicamentos" value={paciente.medicamentosEmUso} />
               <InfoBox label="Observações" value={paciente.observacoes} />
             </Grid>
