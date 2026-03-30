@@ -63,12 +63,15 @@ export default function PacientesPage() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const excluirPaciente = async (paciente: Paciente) => {
-    const confirmou = window.confirm(`Deseja realmente excluir o paciente "${paciente.nome}"?`);
+    const id = paciente.id;
+    const confirmou = window.confirm(
+      `Excluir o paciente #${id} — "${paciente.nome}"?\n\nIsso também remove consultas e faturamento vinculados.`
+    );
     if (!confirmou) return;
 
     try {
-      await api.delete(`/pacientes/${paciente.id}`);
-      setPacientes((prev) => prev.filter((p) => p.id !== paciente.id));
+      await api.delete(`/pacientes/${id}`);
+      setPacientes((prev) => prev.filter((p) => p.id !== id));
       setErro(null);
     } catch (err) {
       console.error(err);
