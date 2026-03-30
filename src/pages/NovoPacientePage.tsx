@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
-  Box, Typography, Button, TextField, Grid, Paper,
+  Box, Typography, Button, TextField, Paper,
   Divider, FormControlLabel, Checkbox, Alert,
   CircularProgress, Snackbar, MenuItem, InputAdornment,
   Stepper, Step, StepLabel
 } from '@mui/material';
+import { GridLegacy as Grid } from '@mui/material';
 import {
   PersonOutlined as PersonIcon,
   MedicalInformationOutlined as MedicalIcon,
