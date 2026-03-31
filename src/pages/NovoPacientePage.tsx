@@ -11,8 +11,7 @@ import {
   CheckCircleOutlined as CheckIcon,
   AddCircleOutline as AddIcon,
   ArrowForward as NextIcon,
-  ArrowBack as BackIcon,
-  AssignmentOutlined as ProcedureIcon
+  ArrowBack as BackIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
@@ -32,7 +31,7 @@ export default function NovoPacientePage() {
   // --- ESTADOS DOS FORMULÁRIOS ---
   const [dados, setDados] = useState({
     nome: '', cpf: '', rg: '', dataNascimento: '', sexo: '',
-    telefone: '', email: '', endereco: '', // E-mail de volta!
+    telefone: '', email: '', endereco: '',
     queixaPrincipal: '', alergias: '', medicamentosEmUso: '',
     doencasSistemicas: '', pressaoArterial: '',
     fumante: false, diabetico: false, hipertenso: false,
@@ -42,7 +41,9 @@ export default function NovoPacientePage() {
   const [procedimento, setProcedimento] = useState({
     descricao: '',
     valor: '',
-    status: 'AGENDADO'
+    status: 'AGENDADO',
+    // Inicia com a data/hora atual no formato que o input datetime-local aceita (YYYY-MM-DDTHH:mm)
+    dataAgendada: new Date().toISOString().slice(0, 16) 
   });
 
   const atualizar = (campo: string, valor: any) => {
@@ -51,7 +52,6 @@ export default function NovoPacientePage() {
 
   // --- LÓGICA DE SALVAMENTO ---
 
-  // 1. Salva o Paciente (Fim do Passo 2)
   const handleFinalizarAnamnese = async () => {
     try {
       setLoading(true);
@@ -62,7 +62,7 @@ export default function NovoPacientePage() {
       });
       setPacienteId(response.data.id);
       setSucesso(true);
-      setActiveStep(2); // Vai para o formulário de procedimento
+      setActiveStep(2); 
     } catch (err) {
       setErro("Erro ao cadastrar paciente.");
     } finally {
@@ -70,19 +70,18 @@ export default function NovoPacientePage() {
     }
   };
 
-  // 2. Salva o Procedimento (Fim do Passo 3)
   const handleSalvarProcedimento = async () => {
     try {
       setLoading(true);
-      // Aqui você envia o ID do paciente que acabou de ser criado
       await api.post('/procedimentos', {
-        ...procedimento,
+        descricao: procedimento.descricao,
+        valor: procedimento.valor,
+        status: procedimento.status,
+        data: procedimento.dataAgendada, // Envia a data escolhida pelo dentista
         pacienteId: pacienteId,
-        data: new Date().toISOString()
       });
       
       setSucesso(true);
-      // Após salvar o procedimento, vai para a ficha do paciente
       navigate(`/pacientes/${pacienteId}`);
     } catch (err) {
       setErro("Erro ao salvar procedimento.");
@@ -179,17 +178,17 @@ export default function NovoPacientePage() {
         </Paper>
       )}
 
-      {/* PASSO 2: FORMULÁRIO DE PROCEDIMENTO (Agora funcional!) */}
+      {/* PASSO 2: PROCEDIMENTO */}
       {activeStep === 2 && (
         <Paper elevation={0} sx={paperStyle}>
           <Box sx={{ textAlign: 'center', mb: 3 }}>
              <CheckIcon sx={{ fontSize: 40, color: 'success.main' }} />
              <Typography variant="h6">Paciente Cadastrado!</Typography>
-             <Typography variant="body2" color="text.secondary">Agora, lance o procedimento para <strong>{dados.nome}</strong></Typography>
+             <Typography variant="body2" color="text.secondary">Agora, agende o procedimento para <strong>{dados.nome}</strong></Typography>
           </Box>
 
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <TextField 
                 fullWidth 
                 label="Descrição do Procedimento" 
@@ -200,7 +199,7 @@ export default function NovoPacientePage() {
                 sx={fieldStyle} 
               />
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={4}>
               <TextField 
                 fullWidth 
                 label="Valor" 
@@ -212,7 +211,7 @@ export default function NovoPacientePage() {
                 sx={fieldStyle} 
               />
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={4}>
               <TextField 
                 fullWidth select label="Status"
                 value={procedimento.status}
@@ -222,6 +221,18 @@ export default function NovoPacientePage() {
                 <MenuItem value="AGENDADO">Agendado</MenuItem>
                 <MenuItem value="REALIZADO">Realizado</MenuItem>
               </TextField>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="Data e Hora"
+                type="datetime-local"
+                value={procedimento.dataAgendada}
+                onChange={e => setProcedimento({...procedimento, dataAgendada: e.target.value})}
+                InputLabelProps={{ shrink: true }}
+                size="small"
+                sx={fieldStyle}
+              />
             </Grid>
           </Grid>
 
@@ -233,7 +244,7 @@ export default function NovoPacientePage() {
               startIcon={<AddIcon />} 
               sx={btnPrimaryStyle}
             >
-              Finalizar e Salvar Procedimento
+              Finalizar e Salvar Agendamento
             </Button>
             <Button variant="text" onClick={() => navigate(`/pacientes/${pacienteId}`)}>
               Pular e ir para Ficha
@@ -249,7 +260,6 @@ export default function NovoPacientePage() {
   );
 }
 
-// ESTILOS
 const paperStyle = { border: '1px solid #e0e0e0', borderRadius: 3, p: 4, bgcolor: '#fff' };
 const btnPrimaryStyle = { bgcolor: '#9c27b0', '&:hover': { bgcolor: '#7b1fa2' }, textTransform: 'none', fontWeight: 600, borderRadius: 2 };
 const fieldStyle = { '& .MuiOutlinedInput-root': { borderRadius: 2 } };

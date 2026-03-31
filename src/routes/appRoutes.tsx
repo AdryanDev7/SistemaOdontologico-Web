@@ -5,6 +5,7 @@ import NovoPacientePage from '../pages/NovoPacientePage';
 import FinanceiroPage from '../pages/FinanceiroPage';
 import EditarPacientePage from '../pages/EditarPacientePage';
 import FichaPacientePage from '../pages/FichaPacientePage';
+import AgendaPage from '../pages/AgendaPage';
 
 export function AppRoutes() {
   return (
@@ -15,6 +16,7 @@ export function AppRoutes() {
       <Route path="/financeiro" element={<FinanceiroPage />} />
       <Route path="/pacientes/:id/editar" element={<EditarPacientePage />} />
       <Route path="/pacientes/:id" element={<FichaPacientePage />} />
+      <Route path="/agenda" element={<AgendaPage />} />
     </Routes>
-  );
+  );    
 }
