@@ -2,181 +2,165 @@ import { useState, useEffect } from 'react';
 import {
   Box, Typography, Grid, Paper, Table, TableBody, 
   TableCell, TableContainer, TableHead, TableRow,
-  Chip, Card, CardContent, LinearProgress, Divider,
-  IconButton, Tooltip
+  Chip, Card, CardContent, Divider, Button, Tabs, Tab, 
+  Dialog, DialogTitle, DialogContent, DialogActions, 
+  TextField, MenuItem, Fade, CircularProgress
 } from '@mui/material';
 import {
-  TrendingUp as IncomeIcon,
-  AccountBalanceWalletOutlined as WalletIcon,
-  PendingActionsOutlined as PendingIcon,
-  VisibilityOutlined as ViewIcon
+  TrendingUp, TrendingDown, AddCircleOutline, 
+  AccountBalanceWallet, EventNote
 } from '@mui/icons-material';
 import { api } from '../services/api';
 
-interface Lancamento {
+interface Transacao {
   id: number;
   descricao: string;
-  pacienteNome: string;
+  categoria: string;
   valor: number;
   data: string;
-  status: 'PAGO' | 'PENDENTE';
+  tipo: 'ENTRADA' | 'SAIDA';
 }
 
 export default function FinanceiroPage() {
-  const [lancamentos, setLancamentos] = useState<Lancamento[]>([]);
   const [loading, setLoading] = useState(true);
-  const [totais, setTotais] = useState({ recebido: 0, pendente: 0 });
+  const [salvando, setSalvando] = useState(false);
+  const [abaAtiva, setAbaAtiva] = useState(0);
+  const [openModal, setOpenModal] = useState(false);
+  const [transacoes, setTransacoes] = useState<Transacao[]>([]);
+  const [novaDespesa, setNovaDespesa] = useState({ descricao: '', valor: '', categoria: 'MATERIAL' });
 
-  useEffect(() => {
-    const carregarDadosFinanceiros = async () => {
-      try {
-        setLoading(true);
-        
-        const mockData: Lancamento[] = [
-          { id: 1, descricao: 'Limpeza e Profilaxia', pacienteNome: 'Adryan Lima', valor: 250.00, data: '2026-03-31', status: 'PAGO' },
-          { id: 2, descricao: 'Extração Siso', pacienteNome: 'Hugo Silva', valor: 450.00, data: '2026-03-30', status: 'PENDENTE' },
-          { id: 3, descricao: 'Restauração Resina', pacienteNome: 'Elisa Santos', valor: 180.00, data: '2026-03-29', status: 'PAGO' },
-          { id: 4, descricao: 'Avaliação Inicial', pacienteNome: 'Luan Miguel', valor: 100.00, data: '2026-03-28', status: 'PAGO' },
-        ];
+  const carregarDados = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/financeiro/fluxo-caixa');
+      setTransacoes(response.data);
+    } catch (error) {
+      console.error("Erro ao buscar dados reais:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        setLancamentos(mockData);
+  useEffect(() => { carregarDados(); }, []);
 
-        const recebido = mockData.filter(l => l.status === 'PAGO').reduce((acc, curr) => acc + curr.valor, 0);
-        const pendente = mockData.filter(l => l.status === 'PENDENTE').reduce((acc, curr) => acc + curr.valor, 0);
-        
-        setTotais({ recebido, pendente });
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleSalvarDespesa = async () => {
+    try {
+      setSalvando(true);
+      await api.post('/financeiro/despesas', novaDespesa);
+      setOpenModal(false);
+      setNovaDespesa({ descricao: '', valor: '', categoria: 'MATERIAL' });
+      carregarDados();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setSalvando(false);
+    }
+  };
 
-    carregarDadosFinanceiros();
-  }, []);
+  const entradas = transacoes.filter(t => t.tipo === 'ENTRADA').reduce((acc, curr) => acc + curr.valor, 0);
+  const saidas = transacoes.filter(t => t.tipo === 'SAIDA').reduce((acc, curr) => acc + curr.valor, 0);
+  const saldo = entradas - saidas;
 
   return (
-    <Box sx={{ p: 1 }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight={700} color="primary">
-          Financeiro
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Visão geral de entradas e faturamento da clínica.
-        </Typography>
-      </Box>
-
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={4}>
-          <Card sx={cardStyle}>
-            <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Box sx={{ bgcolor: '#e8f5e9', p: 1.5, borderRadius: 2 }}>
-                <IncomeIcon sx={{ color: '#2e7d32' }} />
-              </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary" fontWeight={600}>RECEBIDO (MÊS)</Typography>
-                <Typography variant="h5" fontWeight={700} color="#2e7d32">
-                  R$ {totais.recebido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Card sx={cardStyle}>
-            <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Box sx={{ bgcolor: '#fff3e0', p: 1.5, borderRadius: 2 }}>
-                <PendingIcon sx={{ color: '#ed6c02' }} />
-              </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary" fontWeight={600}>A RECEBER (PENDENTE)</Typography>
-                <Typography variant="h5" fontWeight={700} color="#ed6c02">
-                  R$ {totais.pendente.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Card sx={{ ...cardStyle, bgcolor: '#9c27b0', color: '#fff' }}>
-            <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Box sx={{ bgcolor: 'rgba(255,255,255,0.2)', p: 1.5, borderRadius: 2 }}>
-                <WalletIcon />
-              </Box>
-              <Box>
-                <Typography variant="caption" sx={{ opacity: 0.8, fontWeight: 600 }}>FATURAMENTO TOTAL</Typography>
-                <Typography variant="h5" fontWeight={700}>
-                  R$ {(totais.recebido + totais.pendente).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
-      <Paper elevation={0} sx={{ border: '1px solid #e0e0e0', borderRadius: 3, overflow: 'hidden' }}>
-        <Box sx={{ p: 2.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: '#fff' }}>
-          <Typography variant="h6" fontWeight={700}>Fluxo de Entradas</Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-             <Tooltip title="Gerar Relatório">
-                <IconButton size="small"><ViewIcon /></IconButton>
-             </Tooltip>
+    <Fade in={true} timeout={800}>
+      <Box sx={{ p: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 5 }}>
+          <Box>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: '#1a202c' }}>Fluxo de Caixa</Typography>
+            <Typography variant="body1" color="text.secondary">Dados reais do sistema Odonto Pro</Typography>
           </Box>
+          <Button variant="contained" startIcon={<AddCircleOutline />} onClick={() => setOpenModal(true)} sx={premiumBtnStyle}>
+            Registrar Saída
+          </Button>
         </Box>
-        <Divider />
-        
-        {loading ? <LinearProgress color="secondary" /> : (
-          <TableContainer>
-            <Table>
-              <TableHead sx={{ bgcolor: '#f9fafb' }}>
-                <TableRow>
-                  <TableCell sx={headerTableCellStyle}>DATA</TableCell>
-                  <TableCell sx={headerTableCellStyle}>PACIENTE</TableCell>
-                  <TableCell sx={headerTableCellStyle}>SERVIÇO</TableCell>
-                  <TableCell sx={headerTableCellStyle}>VALOR</TableCell>
-                  <TableCell sx={headerTableCellStyle}>STATUS</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {lancamentos.map((l) => (
-                  <TableRow key={l.id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                    <TableCell>{new Date(l.data).toLocaleDateString('pt-BR')}</TableCell>
-                    <TableCell sx={{ fontWeight: 600, color: '#333' }}>{l.pacienteNome}</TableCell>
-                    <TableCell color="text.secondary">{l.descricao}</TableCell>
-                    <TableCell sx={{ fontWeight: 700 }}>
-                      R$ {l.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={l.status} 
-                        size="small"
-                        color={l.status === 'PAGO' ? 'success' : 'warning'}
-                        variant="filled"
-                        sx={{ fontWeight: 700, fontSize: '0.7rem' }}
-                      />
-                    </TableCell>
+
+        <Grid container spacing={3} sx={{ mb: 6 }}>
+          <Grid item xs={12} md={4}>
+            <Card sx={{ ...cardBase, borderLeft: '6px solid #10b981' }}>
+              <CardContent>
+                <Typography variant="overline" fontWeight={700} color="text.secondary">ENTRADAS</Typography>
+                <Typography variant="h4" fontWeight={800} color="#064e3b">R$ {entradas.toLocaleString('pt-BR')}</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card sx={{ ...cardBase, borderLeft: '6px solid #ef4444' }}>
+              <CardContent>
+                <Typography variant="overline" fontWeight={700} color="text.secondary">SAÍDAS</Typography>
+                <Typography variant="h4" fontWeight={800} color="#7f1d1d">R$ {saidas.toLocaleString('pt-BR')}</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card sx={balanceCard}>
+              <CardContent>
+                <Typography variant="overline" fontWeight={700} color="rgba(255,255,255,0.8)">SALDO ATUAL</Typography>
+                <Typography variant="h4" fontWeight={800}>R$ {saldo.toLocaleString('pt-BR')}</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+
+        <Paper elevation={0} sx={premiumTable}>
+          <Tabs value={abaAtiva} onChange={(_, v) => setAbaAtiva(v)} sx={{ px: 3, pt: 1 }}>
+            <Tab label="Receitas" sx={{ fontWeight: 700, textTransform: 'none' }} />
+            <Tab label="Despesas" sx={{ fontWeight: 700, textTransform: 'none' }} />
+          </Tabs>
+          <Divider />
+          {loading ? (
+             <Box sx={{ p: 10, textAlign: 'center' }}><CircularProgress /></Box>
+          ) : (
+            <TableContainer>
+              <Table>
+                <TableHead sx={{ bgcolor: '#f8fafc' }}>
+                  <TableRow>
+                    <TableCell sx={headerStyle}>DATA</TableCell>
+                    <TableCell sx={headerStyle}>DESCRIÇÃO</TableCell>
+                    <TableCell sx={headerStyle} align="right">VALOR</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-      </Paper>
-    </Box>
+                </TableHead>
+                <TableBody>
+                  {transacoes.filter(t => (abaAtiva === 0 ? t.tipo === 'ENTRADA' : t.tipo === 'SAIDA')).map((t) => (
+                    <TableRow key={t.id} hover>
+                      <TableCell sx={{ color: 'text.secondary' }}>{new Date(t.data).toLocaleDateString('pt-BR')}</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>{t.descricao}</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 800, color: t.tipo === 'ENTRADA' ? '#10b981' : '#ef4444' }}>
+                        {t.tipo === 'ENTRADA' ? '+' : '-'} R$ {t.valor.toLocaleString('pt-BR')}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </Paper>
+
+        <Dialog open={openModal} onClose={() => setOpenModal(false)} PaperProps={{ sx: { borderRadius: 4 } }}>
+          <DialogTitle sx={{ fontWeight: 800 }}>Registrar Saída</DialogTitle>
+          <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
+            <TextField fullWidth label="Descrição" variant="filled" value={novaDespesa.descricao} onChange={e => setNovaDespesa({...novaDespesa, descricao: e.target.value})} sx={inputStyle} />
+            <TextField fullWidth label="Valor" type="number" variant="filled" value={novaDespesa.valor} onChange={e => setNovaDespesa({...novaDespesa, valor: e.target.value})} sx={inputStyle} />
+            <TextField fullWidth select label="Categoria" variant="filled" value={novaDespesa.categoria} onChange={e => setNovaDespesa({...novaDespesa, categoria: e.target.value})} sx={inputStyle}>
+              <MenuItem value="MATERIAL">Material</MenuItem>
+              <MenuItem value="FIXO">Custo Fixo</MenuItem>
+              <MenuItem value="PROLABORE">Pró-labore</MenuItem>
+            </TextField>
+          </DialogContent>
+          <DialogActions sx={{ p: 3 }}>
+            <Button onClick={() => setOpenModal(false)}>Cancelar</Button>
+            <Button variant="contained" sx={premiumBtnStyle} onClick={handleSalvarDespesa} disabled={salvando}>
+              {salvando ? <CircularProgress size={24} /> : 'Salvar'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
+    </Fade>
   );
 }
 
-const cardStyle = {
-  borderRadius: 4,
-  boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-  border: '1px solid #f0f0f0'
-};
-
-const headerTableCellStyle = {
-  fontWeight: 700,
-  color: 'text.secondary',
-  fontSize: '0.75rem',
-  letterSpacing: '0.05em'
-};
+const cardBase = { borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', border: '1px solid #f1f5f9' };
+const balanceCard = { borderRadius: '16px', background: 'linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%)', color: '#fff', boxShadow: '0 10px 25px rgba(109, 40, 217, 0.3)' };
+const premiumTable = { borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden' };
+const premiumBtnStyle = { bgcolor: '#6d28d9', fontWeight: 700, borderRadius: '12px', textTransform: 'none', '&:hover': { bgcolor: '#5b21b6' } };
+const headerStyle = { fontWeight: 800, color: '#64748b', fontSize: '0.75rem' };
+const inputStyle = { '& .MuiInputBase-root': { borderRadius: '12px' } };
