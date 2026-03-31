@@ -54,7 +54,6 @@ const getAvatarColor = (nome: string) => {
 
 export default function PacientesPage() {
   const navigate = useNavigate();
-  // INICIALIZAÇÃO SEGURA: Sempre começa como array vazio []
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -71,7 +70,6 @@ export default function PacientesPage() {
 
     try {
       await api.delete(`/pacientes/${id}`);
-      // UPDATE SEGURO: Verifica se prev é array antes de filtrar
       setPacientes((prev) => (Array.isArray(prev) ? prev.filter((p) => p.id !== id) : []));
       setErro(null);
     } catch (err) {
@@ -84,9 +82,20 @@ export default function PacientesPage() {
     const fetchPacientes = async () => {
       try {
         setLoading(true);
-        const { data } = await api.get<Paciente[]>('/pacientes');
-        // SET SEGURO: Garante que data seja array ou fallback para []
-        setPacientes(Array.isArray(data) ? data : []);
+        const response = await api.get('/pacientes');
+        const data = response.data;
+        
+        // DEBUG: Abra o F12 no navegador e veja o que aparece aqui!
+        console.log("Dados recebidos da API:", data);
+
+        // LÓGICA DE DETECÇÃO: Aceita lista pura [] ou objeto de paginação { content: [] }
+        if (Array.isArray(data)) {
+          setPacientes(data);
+        } else if (data && Array.isArray(data.content)) {
+          setPacientes(data.content);
+        } else {
+          setPacientes([]);
+        }
       } catch (err) {
         setErro('Erro de conexão. O servidor está on-line?');
         console.error(err);
@@ -97,7 +106,6 @@ export default function PacientesPage() {
     fetchPacientes();
   }, []);
 
-  // FILTRO SEGURO: A "trava" contra a tela branca está aqui (Array.isArray)
   const pacientesFiltrados = (Array.isArray(pacientes) ? pacientes : []).filter((p) => {
     const nomeBaixo = p.nome?.toLowerCase() || '';
     const buscaBaixa = busca.toLowerCase();
@@ -181,11 +189,11 @@ export default function PacientesPage() {
                 <TableRow key={paciente.id} hover sx={{ '&:hover': { bgcolor: '#fdf8ff' }, '&:last-child td': { border: 0 } }}>
                   <TableCell sx={{ pl: 3 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Avatar sx={{ width: 36, height: 36, bgcolor: getAvatarColor(paciente.nome), fontSize: '0.8rem', fontWeight: 700 }}>
-                        {getInitials(paciente.nome)}
+                      <Avatar sx={{ width: 36, height: 36, bgcolor: getAvatarColor(paciente.nome || ''), fontSize: '0.8rem', fontWeight: 700 }}>
+                        {getInitials(paciente.nome || '')}
                       </Avatar>
                       <Box>
-                        <Typography variant="body2" fontWeight={600}>{paciente.nome}</Typography>
+                        <Typography variant="body2" fontWeight={600}>{paciente.nome || 'Sem Nome'}</Typography>
                         <Typography variant="caption" color="text.secondary">{paciente.email}</Typography>
                       </Box>
                     </Box>
